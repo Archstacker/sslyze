@@ -28,6 +28,13 @@ from xml.etree.ElementTree import Element, tostring
 from xml.dom import minidom
 import signal
 import sys
+import os
+import threading
+import Queue
+import tornado.ioloop
+import tornado.web
+from tornado.concurrent import Future
+from tornado import gen
 
 from plugins import PluginsFinder
 
@@ -159,7 +166,7 @@ def main():
     freeze_support()
 
     # Handle SIGINT to terminate processes
-    signal.signal(signal.SIGINT, sigint_handler)
+    #signal.signal(signal.SIGINT, sigint_handler)
 
     start_time = time()
     #--PLUGINS INITIALIZATION--
@@ -276,6 +283,7 @@ def main():
 
         else: # Getting an actual result
             (target, command, plugin_result) = result
+            global_message_buffer.new_messages(tostring(plugin_result.get_xml_result()))
             result_dict[target].append((command, plugin_result))
 
             if len(result_dict[target]) == task_num: # Done with this target
@@ -330,6 +338,55 @@ def main():
     if not shared_settings['quiet']:
         print _format_title('Scan Completed in {0:.2f} s'.format(exec_time))
 
+class MessageBuffer(object):
+    def __init__(self):
+        self.cache = Queue.Queue()
+        self.result_future = Future()
+        self.result_future._set_done()
+
+    def wait_for_messages(self):
+        self.result_future = Future()
+        if not self.cache.empty():
+            self.result_future.set_result(self.cache.get())
+        return self.result_future
+
+    def new_messages(self, messages):
+        if not self.result_future or self.result_future.done():
+            self.cache.put(messages)
+        else:
+            self.result_future.set_result(messages)
+
+global_message_buffer = MessageBuffer()
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("index.html")
+        worker = threading.Thread(target=main)
+        worker.start()
+
+class MessageUpdatesHandler(tornado.web.RequestHandler):
+    @gen.coroutine
+    def post(self):
+        if self.request.connection.stream.closed():
+            return
+        self.future = global_message_buffer.wait_for_messages()
+        messages = yield self.future
+        self.write(''.join(messages))
+
+    def on_connection_close(self):
+        global_message_buffer.cancel_wait(self.future)
+
+def web():
+    app = tornado.web.Application(
+        [
+            (r"/", MainHandler),
+            (r"/updates", MessageUpdatesHandler),
+            ],
+        template_path=os.path.join(os.path.dirname(__file__), "templates"),
+        static_path=os.path.join(os.path.dirname(__file__), "static"),
+        )
+    app.listen(8888)
+    tornado.ioloop.IOLoop.current().start()
+
 
 if __name__ == "__main__":
-    main()
+    web()
