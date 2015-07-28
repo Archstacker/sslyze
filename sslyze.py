@@ -273,6 +273,9 @@ def main(domain):
     for target in targets_OK:
         result_dict[target] = []
 
+    (host, ip, port, sslVersion) = target
+    yield "basic",Element('target', host=host, ip=ip, port=str(port))
+
     # If all processes have stopped, all the work is done
     while processes_running:
         result = result_queue.get()
@@ -283,7 +286,7 @@ def main(domain):
         else: # Getting an actual result
             (target, command, plugin_result) = result
             result_dict[target].append((command, plugin_result))
-            yield command,plugin_result
+            yield command,plugin_result.get_xml_result()
 
             if len(result_dict[target]) == task_num: # Done with this target
                 # Print the results and update the xml doc
@@ -357,10 +360,9 @@ class MainHandler(tornado.web.RequestHandler):
 
 class ChatSocketHandler(tornado.websocket.WebSocketHandler):
     def open(self):
-        tran_main = etree.XSLT(etree.parse('templates/sslyze.xsl'))
+        tran_main = etree.XSLT(etree.parse('sslyze-html/sslyze.xsl'))
         for cmd,result in main('www.isecpartners.com'):
-
-            xml_result = etree.XML(tostring(result.get_xml_result()))
+            xml_result = etree.XML(tostring(result))
             message = [cmd , tran_main(xml_result).__str__()]
             self.write_message(tornado.escape.json_encode(message))
 
