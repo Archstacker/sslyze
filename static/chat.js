@@ -9,7 +9,8 @@ var updater = {
         var url = "ws://" + location.host + "/chatsocket";
         updater.socket = new WebSocket(url);
         updater.socket.onmessage = function(event) {
-            console.log(event.data)
+            var data=JSON.parse(event.data);
+            $("#"+data[0]).append(data[1])
         }
     },
 

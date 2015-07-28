@@ -54,7 +54,7 @@ MAX_PROCESSES = 12
 MIN_PROCESSES = 3
 
 # Global so we can terminate processes when catching SIGINT
-process_list = []
+#process_list = []
 
 
 # Todo: Move formatting stuff to another file
@@ -150,13 +150,13 @@ def _format_txt_target_result(target, result_list):
     return _format_title(scan_txt) + '\n' + target_result_str + '\n\n'
 
 
-def sigint_handler(signum, frame):
-
-    print 'Scan interrupted... shutting down.'
-    for (proc, _) in process_list:
-        # Terminating a process this way will corrupt the queues but we're shutting down anyway
-        proc.terminate()
-    sys.exit()
+#def sigint_handler(signum, frame):
+#
+#    print 'Scan interrupted... shutting down.'
+#    for (proc, _) in process_list:
+#        # Terminating a process this way will corrupt the queues but we're shutting down anyway
+#        proc.terminate()
+#    sys.exit()
 
 
 def main(domain):
@@ -164,7 +164,7 @@ def main(domain):
     freeze_support()
 
     # Handle SIGINT to terminate processes
-    signal.signal(signal.SIGINT, sigint_handler)
+    #signal.signal(signal.SIGINT, sigint_handler)
 
     start_time = time()
     #--PLUGINS INITIALIZATION--
@@ -198,6 +198,7 @@ def main(domain):
     task_queue = JoinableQueue() # Processes get tasks from task_queue and
     result_queue = JoinableQueue() # put the result of each task in result_queue
 
+    process_list=[]
     # Spawn a pool of processes, and pass them the queues
     for _ in xrange(nb_processes):
         priority_queue = JoinableQueue() # Each process gets a priority queue
@@ -358,8 +359,10 @@ class ChatSocketHandler(tornado.websocket.WebSocketHandler):
     def open(self):
         tran_main = etree.XSLT(etree.parse('templates/sslyze.xsl'))
         for cmd,result in main('www.isecpartners.com'):
+
             xml_result = etree.XML(tostring(result.get_xml_result()))
-            self.write_message(tran_main(xml_result).__str__())
+            message = [cmd , tran_main(xml_result).__str__()]
+            self.write_message(tornado.escape.json_encode(message))
 
 def webserver():
     app = Application()
