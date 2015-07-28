@@ -361,10 +361,17 @@ class MainHandler(tornado.web.RequestHandler):
 class ChatSocketHandler(tornado.websocket.WebSocketHandler):
     def open(self):
         tran_main = etree.XSLT(etree.parse('sslyze-html/sslyze.xsl'))
+        tran_cipher = etree.XSLT(etree.parse('sslyze-html/cipher.xsl'))
+        ciphers = {'sslv2':0,'sslv3':1,'tlsv1':2,'tlsv1_1':3,'tlsv1_2':4}
+        ciphers_str = [None] * 5
         for cmd,result in main('www.isecpartners.com'):
             xml_result = etree.XML(tostring(result))
             message = [cmd , tran_main(xml_result).__str__()]
             self.write_message(tornado.escape.json_encode(message))
+            if cmd in ciphers.keys():
+                ciphers_str[ciphers[cmd]] = tran_cipher(xml_result).__str__()
+        message = ['ciphers' , ''.join(ciphers_str)]
+        self.write_message(tornado.escape.json_encode(message))
 
 def webserver():
     app = Application()
