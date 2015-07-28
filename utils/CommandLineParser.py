@@ -84,12 +84,12 @@ class CommandLineParser():
                     help=regular_help)
 
 
-    def parse_command_line(self):
+    def parse_command_line(self,domain):
         """
         Parses the command line used to launch SSLyze.
         """
 
-        (args_command_list, args_target_list) = self._parser.parse_args(args = ["--regular","www.v2ex.com"])
+        (args_command_list, args_target_list) = self._parser.parse_args(args = ["--regular",domain])
 
         # Handle the --targets_in command line and fill args_target_list
         if args_command_list.targets_in:

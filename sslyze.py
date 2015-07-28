@@ -32,6 +32,7 @@ import os
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
+from lxml import etree
 
 from plugins import PluginsFinder
 
@@ -174,7 +175,7 @@ def main(domain):
     sslyze_parser = CommandLineParser(available_plugins, PROJECT_VERSION)
 
     try: # Parse the command line
-        (command_list, target_list, shared_settings) = sslyze_parser.parse_command_line()
+        (command_list, target_list, shared_settings) = sslyze_parser.parse_command_line(domain)
     except CommandLineParsingError as e:
         print e.get_error_msg()
         return
@@ -351,13 +352,14 @@ class Application(tornado.web.Application):
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("index.html")
+        self.render("index.htm")
 
 class ChatSocketHandler(tornado.websocket.WebSocketHandler):
-
     def open(self):
+        tran_main = etree.XSLT(etree.parse('templates/sslyze.xsl'))
         for cmd,result in main('www.isecpartners.com'):
-            self.write_message(tostring(result.get_xml_result()))
+            xml_result = etree.XML(tostring(result.get_xml_result()))
+            self.write_message(tran_main(xml_result).__str__())
 
 def webserver():
     app = Application()

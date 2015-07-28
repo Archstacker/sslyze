@@ -1,0 +1,4 @@
+[submodule "templates"]
+	path = templates
+	url = git@github.com:Archstacker/sslyze-html.git
+	branch = split
