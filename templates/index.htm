@@ -1,74 +1,49 @@
-    <html>
-      <head>
-        <title> SSL Check </title>
-        <link media="all" rel="stylesheet" type="text/css" href="https://sslcheck.globalsign.com/stylesheets/all-ssl-config.css"/>
-        <script src="https://sslcheck.globalsign.com/javascripts/jquery-1.7.1.min.js" type="text/javascript"></script>
-        <script src="{{ static_url("chat.js") }}" type="text/javascript"></script>
-      </head>
+<!DOCTYPE html>
 
-      <body class="sub-inner-page">
-        <div id="wrapper">
-          <div class="sub-inner">
-            <div class="sub-inner-w1">
-              <div class="sub-inner-w2">
-                <div class="sub-inner-w3">
-                  <div class="details-block">
+<html>
 
-                    <a id="server" href="#" class="detail-drawer-tab active">
-                      <h3> Server Details </h3>
-                    </a>
-                    <div style="display: block;" class="detail-drawer server-drawer">
-                      <div class="drawer-image-holder">Server Details Icon</div>
-                      <div class="drawer-info-holder" id="basic">
-                      </div>
-                    </div>
+<head>
+	<meta charset="utf-8" />
+	<title>sslyze-web</title>
+    <link rel="stylesheet" href="{{ static_url("bootstrap.min.css") }}">
 
-                    <a id="cert" href="#" class="detail-drawer-tab active">
-                      <h3>Certificate Details</h3>
-                    </a>
-                    <div style="display: block;" class="detail-drawer certificate-drawer">
-                      <div class="drawer-image-holder">Certificate Details Icon</div>
-                      <div class="drawer-info-holder" id="certinfo">
-                      </div>
-                    </div>
+</head>
 
-                    <a id="chiper" href="#" class="detail-drawer-tab active">
-                      <h3>Cipher Suites</h3>
-                    </a>
-                    <div style="display: block;" class="detail-drawer ssl-drawer">
-                      <div class="drawer-image-holder">SSL Configuration Icon</div>
-                      <div class="drawer-info-holder" id='ciphers'>
-                      </div>
-                      <div class="cipher-drawer">
-                        <div class="drawer-image-holder">Cipher Suites Icon</div>
-                        <div class="drawer-info-holder">
-                            <div id="sslv2"></div>
-                            <div id="sslv3"></div>
-                            <div id="tlsv1"></div>
-                            <div id="tlsv1_1"></div>
-                            <div id="tlsv1_2"></div>
-                        </div>
-                      </div>
-                    </div>
+<body>
 
-                    <a id="misc" href="#" class="detail-drawer-tab active">
-                      <h3> Miscellaneous Details </h3>
-                    </a>
-                    <div style="display: block;" class="detail-drawer">
-                      <div class="drawer-image-holder">Miscellaneous Details Icon</div>
-                      <div class="drawer-info-holder">
-                        <div id="reneg"></div>
-                        <div id="resum"></div>
-                        <div id="compression"></div>
-                        <div id="heartbleed"></div>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+<div class="navbar navbar-inverse" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Home</a>
         </div>
-      </body>
-    </html>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="/">About</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="jumbotron">
+        <h1>sslyze-web</h1>
+        <p>A website base on sslyze</p> 
+        <br>
+        <form accept-charset="UTF-8" action="/test" class="form-inline" method="post">
+            <div class="form-group col-md-8">
+                <input class="form-control" id="url" name="url" placeholder="Please input the website you want to test" type="text">
+                <input class="btn btn-large btn-primary" value="Start" type="submit">
+            </div>
+        </form>
+        <br>
+    </div>
+</div>
+</body>
+
+</html>

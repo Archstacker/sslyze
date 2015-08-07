@@ -344,13 +344,14 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r"/", MainHandler),
+            (r"/test", TestHandler),
             (r"/chatsocket", ChatSocketHandler),
         ]
         settings = dict(
             cookie_secret="https://github.com/Archstacker/sslyze-web",
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
-            xsrf_cookies=True,
+            #xsrf_cookies=True,
         )
         tornado.web.Application.__init__(self, handlers, **settings)
 
@@ -358,13 +359,18 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("index.htm")
 
+class TestHandler(tornado.web.RequestHandler):
+    def post(self):
+        self.render("test.htm" , domain=self.get_argument("url"))
+
 class ChatSocketHandler(tornado.websocket.WebSocketHandler):
-    def open(self):
+    @tornado.web.asynchronous
+    def on_message(self, domain):
         tran_main = etree.XSLT(etree.parse('sslyze-html/sslyze.xsl'))
         tran_cipher = etree.XSLT(etree.parse('sslyze-html/cipher.xsl'))
         ciphers = {'sslv2':0,'sslv3':1,'tlsv1':2,'tlsv1_1':3,'tlsv1_2':4}
         ciphers_str = [None] * 5
-        for cmd,result in main('www.isecpartners.com'):
+        for cmd,result in main(domain):
             xml_result = etree.XML(tostring(result))
             message = [cmd , tran_main(xml_result).__str__()]
             self.write_message(tornado.escape.json_encode(message))
