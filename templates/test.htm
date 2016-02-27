@@ -2,8 +2,8 @@
     <html>
       <head>
         <title> SSL Check </title>
-        <link media="all" rel="stylesheet" type="text/css" href="https://sslcheck.globalsign.com/stylesheets/all-ssl-config.css"/>
-        <script src="https://sslcheck.globalsign.com/javascripts/jquery-1.7.1.min.js" type="text/javascript"></script>
+        <link media="all" rel="stylesheet" type="text/css" href="{{ static_url("all-ssl-config.css") }}"/>
+        <script src="{{ static_url("jquery-1.7.1.min.js") }} type="text/javascript"></script>
         <script src="{{ static_url("chat.js") }}" type="text/javascript"></script>
         <script>var test_domain = "{{ domain }}";</script>
       </head>
