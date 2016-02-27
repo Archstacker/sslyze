@@ -20,6 +20,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with SSLyze.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
+import re
 
 from time import time
 from itertools import cycle
@@ -45,7 +46,7 @@ except ImportError as e:
     sys.exit()
 
 
-PROJECT_VERSION = '0.11.0'
+PROJECT_VERSION = '0.12.0'
 PROJECT_URL = "https://github.com/nabla-c0d3/sslyze"
 PROJECT_EMAIL = 'nabla.c0d3@gmail.com'
 PROJECT_DESC = 'Fast and full-featured SSL scanner'
@@ -180,7 +181,7 @@ def main(domain):
         print e.get_error_msg()
         return
 
-    if not shared_settings['quiet']:
+    if not shared_settings['quiet'] and shared_settings['xml_file'] != '-':
         print '\n\n\n' + _format_title('Available plugins')
         print ''
         for plugin in available_plugins:
@@ -210,7 +211,7 @@ def main(domain):
 
     #--TESTING SECTION--
     # Figure out which hosts are up and fill the task queue with work to do
-    if not shared_settings['quiet']:
+    if not shared_settings['quiet'] and shared_settings['xml_file'] != '-':
         print _format_title('Checking host(s) availability')
 
 
@@ -245,7 +246,7 @@ def main(domain):
     for exception in target_results:
         targets_ERR.append(exception)
 
-    if not shared_settings['quiet']:
+    if not shared_settings['quiet'] and shared_settings['xml_file'] != '-':
         print ServersConnectivityTester.get_printable_result(targets_OK, targets_ERR)
         print '\n\n'
 
@@ -292,7 +293,7 @@ def main(domain):
                 # Print the results and update the xml doc
                 if shared_settings['xml_file']:
                     xml_output_list.append(_format_xml_target_result(target, result_dict[target]))
-                    if not shared_settings['quiet']:
+                    if not shared_settings['quiet'] and shared_settings['xml_file'] != '-':
                         print _format_txt_target_result(target, result_dict[target])
                 else:
                     print _format_txt_target_result(target, result_dict[target])
@@ -331,13 +332,25 @@ def main(domain):
         # Add the output of the plugins
         xml_final_doc.append(result_xml)
 
+        # Remove characters that are illegal for XML
+        # https://lsimons.wordpress.com/2011/03/17/stripping-illegal-characters-out-of-xml-in-python/
+        xml_final_string = tostring(xml_final_doc, encoding='UTF-8')
+        illegal_xml_chars_RE = re.compile(u'[\x00-\x08\x0b\x0c\x0e-\x1F\uD800-\uDFFF\uFFFE\uFFFF]')
+        xml_sanitized_final_string = illegal_xml_chars_RE.sub('', xml_final_string)
+
         # Hack: Prettify the XML file so it's (somewhat) diff-able
-        xml_final_pretty = minidom.parseString(tostring(xml_final_doc, encoding='UTF-8'))
-        with open(shared_settings['xml_file'],'w') as xml_file:
-            xml_file.write(xml_final_pretty.toprettyxml(indent="  ", encoding="utf-8" ))
+        xml_final_pretty = minidom.parseString(xml_sanitized_final_string).toprettyxml(indent="  ", encoding="utf-8" )
+
+        if shared_settings['xml_file'] == '-':
+            # Print XML output to the console if needed
+            print xml_final_pretty
+        else:
+            # Otherwise save the XML output to the console
+            with open(shared_settings['xml_file'],'w') as xml_file:
+                xml_file.write(xml_final_pretty)
 
 
-    if not shared_settings['quiet']:
+    if not shared_settings['quiet'] and shared_settings['xml_file'] != '-':
         print _format_title('Scan Completed in {0:.2f} s'.format(exec_time))
 
 class Application(tornado.web.Application):
